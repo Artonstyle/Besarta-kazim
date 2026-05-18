@@ -572,6 +572,7 @@
   </footer>
   <script>
     let lightboxZoom = 1;
+    let lightboxHistoryOpen = false;
 
     function openLightbox(src, alt) {
       const lightbox = document.getElementById("lightbox");
@@ -587,12 +588,24 @@
       stage.scrollLeft = 0;
       lightbox.classList.add("open");
       document.body.style.overflow = "hidden";
+      if (!lightboxHistoryOpen) {
+        history.pushState({ lightboxOpen: true }, "");
+        lightboxHistoryOpen = true;
+      }
     }
 
     function closeLightbox(event) {
       if (event && event.target && event.target.id !== "lightbox") return;
-      document.getElementById("lightbox").classList.remove("open");
+      const lightbox = document.getElementById("lightbox");
+      if (!lightbox.classList.contains("open")) return;
+      lightbox.classList.remove("open");
       document.body.style.overflow = "";
+      if (!event && lightboxHistoryOpen) {
+        lightboxHistoryOpen = false;
+        history.back();
+      } else if (event) {
+        lightboxHistoryOpen = false;
+      }
     }
 
     function toggleZoom() {
@@ -606,9 +619,17 @@
 
     document.addEventListener("keydown", event => {
       if (event.key === "Escape") {
-        document.getElementById("lightbox").classList.remove("open");
+        closeLightbox();
+      }
+    });
+
+    window.addEventListener("popstate", () => {
+      const lightbox = document.getElementById("lightbox");
+      if (lightbox.classList.contains("open")) {
+        lightbox.classList.remove("open");
         document.body.style.overflow = "";
       }
+      lightboxHistoryOpen = false;
     });
   </script>
 </body>
